@@ -9,6 +9,8 @@ import { products } from '../data/products';
 import type { ProductReview } from '../data/products';
 import { useApp } from '../context/AppContext';
 import { ProductCard } from '../components/ProductCard';
+import { productsApi } from '../lib/api';
+import type { Product } from '../data/products';
 
 /* ─────────────────────────────────────────────
    Sub-component: Image Gallery
@@ -391,18 +393,54 @@ const ProductDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const { addToCart, toggleWishlist, wishlist } = useApp();
 
-  const product = products.find((p) => p.id === id);
-
-  const [selectedColor, setSelectedColor] = useState(product?.colors?.[0] ?? '');
-  const [selectedSize, setSelectedSize] = useState(product?.sizes?.[0] ?? '');
+  const [product, setProduct] = useState<Product | null | undefined>(undefined); // undefined = loading
+  const [selectedColor, setSelectedColor] = useState('');
+  const [selectedSize, setSelectedSize] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [activeTab, setActiveTab] = useState<TabId>('description');
   const [cartState, setCartState] = useState<'idle' | 'loading' | 'done'>('idle');
 
+  // Fetch product from API, fall back to static data
+  useEffect(() => {
+    if (!id) return;
+    setProduct(undefined);
+    productsApi.get(id)
+      .then((p) => {
+        setProduct(p);
+        setSelectedColor(p.colors?.[0] ?? '');
+        setSelectedSize(p.sizes?.[0] ?? '');
+      })
+      .catch(() => {
+        // Server unreachable — use static data
+        const staticProduct = products.find((p) => p.id === id) ?? null;
+        setProduct(staticProduct);
+        setSelectedColor(staticProduct?.colors?.[0] ?? '');
+        setSelectedSize(staticProduct?.sizes?.[0] ?? '');
+      });
+  }, [id]);
+
   const isWishlisted = product ? wishlist.includes(product.id) : false;
 
+  // Loading skeleton
+  if (product === undefined) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-pulse">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+          <div className="aspect-square rounded-3xl bg-slate-200 dark:bg-slate-800" />
+          <div className="space-y-4">
+            <div className="h-4 w-24 bg-slate-200 dark:bg-slate-800 rounded" />
+            <div className="h-8 w-3/4 bg-slate-200 dark:bg-slate-800 rounded" />
+            <div className="h-4 w-1/3 bg-slate-200 dark:bg-slate-800 rounded" />
+            <div className="h-10 w-1/2 bg-slate-200 dark:bg-slate-800 rounded" />
+            <div className="h-24 w-full bg-slate-200 dark:bg-slate-800 rounded" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // 404 guard
-  if (!product) {
+  if (product === null) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4 text-center px-4">
         <p className="text-5xl font-extrabold text-slate-200 dark:text-slate-800">404</p>

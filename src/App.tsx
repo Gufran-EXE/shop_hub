@@ -13,7 +13,7 @@ import { QuickViewModal } from './components/QuickViewModal';
 import { ToastContainer } from './components/Toast';
 import { NavigationProgress } from './components/NavigationProgress';
 import { useApp } from './context/AppContext';
-import { products } from './data/products';
+import { useProducts } from './hooks/useProducts';
 import { CategoryPage } from './pages/CategoryPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import { CartPage } from './pages/CartPage';
@@ -45,28 +45,14 @@ const PageShell: React.FC<{ children: React.ReactNode }> = ({ children }) => (
 const HomeView: React.FC = () => {
   const { searchQuery } = useApp();
 
-  const recommendedProducts = products.filter((p) => {
-    if (searchQuery) {
-      return (
-        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.category.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-    return !p.isDeal;
-  });
+  // Fetch all products from API (falls back to static data if server is down)
+  const { products: allProducts, loading } = useProducts(
+    searchQuery ? { search: searchQuery } : undefined
+  );
+  const { products: dealProducts } = useProducts({ deals: true });
 
-  const trendingProducts = products.filter((p) => {
-    if (searchQuery) {
-      return (
-        p.rating >= 4.6 &&
-        (p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          p.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          p.category.toLowerCase().includes(searchQuery.toLowerCase()))
-      );
-    }
-    return p.rating >= 4.7 && !p.isDeal;
-  });
+  const recommendedProducts = allProducts.filter((p) => !p.isDeal);
+  const trendingProducts    = allProducts.filter((p) => p.rating >= 4.7 && !p.isDeal);
 
   return (
     <>
@@ -83,7 +69,7 @@ const HomeView: React.FC = () => {
           </div>
         )}
 
-        {!searchQuery && <DealsSection products={products} />}
+        {!searchQuery && <DealsSection products={dealProducts} />}
 
         <section className="py-12 border-b border-slate-200/40 dark:border-slate-800/40" id="recommended">
           <div className="flex items-center justify-between mb-8">
@@ -99,6 +85,7 @@ const HomeView: React.FC = () => {
           </div>
           <ProductGrid
             products={recommendedProducts}
+            loading={loading}
             emptyMessage={
               searchQuery
                 ? "We couldn't find any products matching your search term. Try another keyword."
@@ -121,6 +108,7 @@ const HomeView: React.FC = () => {
           </div>
           <ProductGrid
             products={trendingProducts}
+            loading={loading}
             emptyMessage="No trending items found matching your filters."
           />
         </section>

@@ -3,16 +3,19 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Search, ShoppingCart, Heart, User, Sparkles, LogOut, Package, Settings, ChevronDown, Sun, Moon } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
+import { AuthModal } from './AuthModal';
 
 interface NavbarProps {
   onOpenCart: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ onOpenCart: _onOpenCart }) => {
-  const { cart, wishlist, searchQuery, setSearchQuery, isDark, toggleDark } = useApp();
+  const { cart, wishlist, searchQuery, setSearchQuery, isDark, toggleDark, currentUser, logout } = useApp();
   const navigate = useNavigate();
   const [isScrolled, setIsScrolled] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
+  const [authTab, setAuthTab] = useState<'login' | 'register'>('login');
 
   // Monitor scrolling to apply glassmorphic backdrop
   useEffect(() => {
@@ -148,23 +151,32 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenCart: _onOpenCart }) => {
           {/* Profile Dropdown */}
           <div className="relative">
             <button
-              onClick={() => setShowProfileMenu(!showProfileMenu)}
+              onClick={() => {
+                if (currentUser) {
+                  setShowProfileMenu(!showProfileMenu);
+                } else {
+                  setAuthTab('login');
+                  setAuthOpen(true);
+                }
+              }}
               className="flex items-center gap-1.5 p-1 sm:p-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 border border-transparent hover:border-slate-200/50 dark:hover:border-slate-800/50 transition-all duration-200"
             >
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-primary/10 to-accent/10 flex items-center justify-center border border-primary/20">
-                <User className="w-4 h-4 text-primary" />
-              </div>
+              {currentUser ? (
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-primary to-accent flex items-center justify-center text-white text-xs font-extrabold shadow-sm">
+                  {currentUser.name.slice(0, 2).toUpperCase()}
+                </div>
+              ) : (
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-primary/10 to-accent/10 flex items-center justify-center border border-primary/20">
+                  <User className="w-4 h-4 text-primary" />
+                </div>
+              )}
               <ChevronDown className="w-3.5 h-3.5 text-slate-550 hidden sm:block" />
             </button>
 
             <AnimatePresence>
-              {showProfileMenu && (
+              {showProfileMenu && currentUser && (
                 <>
-                  {/* Invisible overlay to close on click outside */}
-                  <div
-                    className="fixed inset-0 z-10"
-                    onClick={() => setShowProfileMenu(false)}
-                  />
+                  <div className="fixed inset-0 z-10" onClick={() => setShowProfileMenu(false)} />
                   <motion.div
                     initial={{ opacity: 0, y: 10, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -173,47 +185,36 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenCart: _onOpenCart }) => {
                     className="absolute right-0 mt-2.5 w-52 bg-white/90 dark:bg-slate-950/95 backdrop-blur-xl border border-slate-200/50 dark:border-slate-800/50 rounded-2xl shadow-xl py-2 z-20"
                   >
                     <div className="px-4 py-2 border-b border-slate-100 dark:border-slate-900 mb-1.5">
-                      <p className="text-xs text-slate-400 font-medium">Signed in as</p>
-                      <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">qamran@example.com</p>
+                      <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{currentUser.name}</p>
+                      <p className="text-xs text-slate-400 font-medium truncate">{currentUser.email}</p>
                     </div>
-
-                    <a
-                      href="#profile"
-                      className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-655 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors"
-                    >
-                      <User className="w-4 h-4" />
-                      Your Profile
+                    <a href="#profile" onClick={() => setShowProfileMenu(false)}
+                      className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-655 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">
+                      <User className="w-4 h-4" /> Your Profile
                     </a>
-                    <a
-                      href="#orders"
-                      className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-655 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors"
-                    >
-                      <Package className="w-4 h-4" />
-                      Track Orders
+                    <a href="#orders" onClick={() => setShowProfileMenu(false)}
+                      className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-655 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">
+                      <Package className="w-4 h-4" /> Track Orders
                     </a>
-                    <a
-                      href="#settings"
-                      className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-655 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors"
-                    >
-                      <Settings className="w-4 h-4" />
-                      Settings
+                    <a href="#settings" onClick={() => setShowProfileMenu(false)}
+                      className="flex items-center gap-2.5 px-4 py-2 text-sm text-slate-655 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">
+                      <Settings className="w-4 h-4" /> Settings
                     </a>
                     <div className="border-t border-slate-100 dark:border-slate-900 my-1.5" />
                     <button
-                      onClick={() => {
-                        setShowProfileMenu(false);
-                        alert("Sign out clicked!");
-                      }}
+                      onClick={() => { setShowProfileMenu(false); logout(); }}
                       className="w-full flex items-center gap-2.5 px-4 py-2 text-sm text-rose-500 hover:bg-rose-500/5 transition-colors text-left"
                     >
-                      <LogOut className="w-4 h-4" />
-                      Sign Out
+                      <LogOut className="w-4 h-4" /> Sign Out
                     </button>
                   </motion.div>
                 </>
               )}
             </AnimatePresence>
           </div>
+
+          {/* Auth Modal */}
+          <AuthModal isOpen={authOpen} onClose={() => setAuthOpen(false)} initialTab={authTab} />
         </div>
       </div>
 

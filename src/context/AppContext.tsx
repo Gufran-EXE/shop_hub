@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import type { Product } from '../data/products';
 
 export interface CartItem {
@@ -12,6 +12,12 @@ export interface ToastMessage {
   type: 'success' | 'info' | 'error';
 }
 
+export interface AuthUser {
+  id: string;
+  name: string;
+  email: string;
+}
+
 interface AppContextProps {
   cart: CartItem[];
   wishlist: string[]; // array of product IDs
@@ -19,6 +25,8 @@ interface AppContextProps {
   activeQuickView: Product | null;
   toasts: ToastMessage[];
   isDark: boolean;
+  currentUser: AuthUser | null;
+  authLoading: boolean;
   setSearchQuery: (query: string) => void;
   addToCart: (product: Product) => void;
   removeFromCart: (productId: string) => void;
@@ -30,6 +38,9 @@ interface AppContextProps {
   removeToast: (id: string) => void;
   clearCart: () => void;
   toggleDark: () => void;
+  setCurrentUser: (user: AuthUser | null) => void;
+  logout: () => Promise<void>;
+  loginUser: (user: AuthUser) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextProps | undefined>(undefined);
@@ -40,6 +51,104 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [searchQuery, setSearchQuery] = useState('');
   const [activeQuickView, setActiveQuickView] = useState<Product | null>(null);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+
+  // ── Cart ↔ MongoDB sync ────────────────────────────────────────────────
+  // Serialize cart items into the shape the API expects
+  const serializeCart = (items: CartItem[]) =>
+    items.map((i) => ({
+      productId:     i.product.id,
+      name:          i.product.name,
+      image:         i.product.image,
+      price:         i.product.price,
+      originalPrice: i.product.originalPrice,
+      discount:      i.product.discount,
+      quantity:      i.quantity,
+    }));
+
+  // Push cart to API — debounced via useEffect below
+  const syncCartToServer = (items: CartItem[]) => {
+    fetch('/api/cart', {
+      method: 'PUT',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items: serializeCart(items) }),
+    }).catch(() => {});
+  };
+
+  // Load cart from server — called after login / hydration
+  const loadCartFromServer = async () => {
+    try {
+      const res = await fetch('/api/cart', { credentials: 'include' });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (!data.items?.length) return;
+
+      // Re-hydrate into CartItem[] shape — match productId back to full product
+      // We only store what we need so we can reconstruct a lightweight Product stub
+      const hydrated: CartItem[] = data.items.map((i: {
+        productId: string; name: string; image: string;
+        price: number; originalPrice: number; discount: number; quantity: number;
+      }) => ({
+        quantity: i.quantity,
+        product: {
+          id: i.productId,
+          name: i.name,
+          image: i.image,
+          images: [i.image],
+          price: i.price,
+          originalPrice: i.originalPrice,
+          discount: i.discount,
+          rating: 0,
+          reviewsCount: 0,
+          description: '',
+          category: '',
+          isDeal: false,
+          inStock: true,
+          features: [],
+        },
+      }));
+      setCart(hydrated);
+    } catch {
+      // Server unreachable — keep current local state
+    }
+  };
+
+  // Hydrate auth state from the server cookie on mount
+  useEffect(() => {
+    fetch('/api/auth/me', { credentials: 'include' })
+      .then((r) => r.ok ? r.json() : null)
+      .then(async (user) => {
+        if (user) {
+          setCurrentUser(user);
+          await loadCartFromServer();
+        }
+      })
+      .catch(() => {})
+      .finally(() => setAuthLoading(false));
+  }, []);
+
+  // Debounce-sync cart to MongoDB whenever it changes (only when logged in)
+  const syncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    if (!currentUser) return;
+    if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
+    syncTimerRef.current = setTimeout(() => syncCartToServer(cart), 800);
+    return () => { if (syncTimerRef.current) clearTimeout(syncTimerRef.current); };
+  }, [cart, currentUser]);
+
+  const logout = async () => {
+    await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }).catch(() => {});
+    setCurrentUser(null);
+    setCart([]); // clear local cart on logout
+  };
+
+  // Expose setCurrentUser so AuthModal can call loadCartFromServer after login
+  const loginUser = async (user: AuthUser) => {
+    setCurrentUser(user);
+    await loadCartFromServer();
+  };
 
   // Dark mode — read from localStorage, fallback to system preference
   const [isDark, setIsDark] = useState<boolean>(() => {
@@ -150,6 +259,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         activeQuickView,
         toasts,
         isDark,
+        currentUser,
+        authLoading,
         setSearchQuery,
         addToCart,
         removeFromCart,
@@ -161,6 +272,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         removeToast,
         clearCart,
         toggleDark,
+        setCurrentUser,
+        logout,
+        loginUser,
       }}
     >
       {children}

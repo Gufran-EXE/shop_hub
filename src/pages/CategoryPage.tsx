@@ -5,7 +5,7 @@ import {
   SlidersHorizontal, ChevronDown, Grid, List, Star, 
   ArrowUpDown, RefreshCw, X, ArrowLeft, HeartPulse, Smartphone, Shirt, Home, Bike, BookOpen, Sparkles, Coffee
 } from 'lucide-react';
-import { products } from '../data/products';
+import { useProducts } from '../hooks/useProducts';
 import { ProductCard } from '../components/ProductCard';
 
 export const CategoryPage: React.FC = () => {
@@ -55,9 +55,9 @@ export const CategoryPage: React.FC = () => {
   const categoryDetails = getCategoryDetails(slug);
   const categoryLabel = categoryDetails.label;
 
-  // Extract all available brands for the current category
-  const categoryProducts = products.filter(
-    (p) => p.category.toLowerCase() === (slug?.toLowerCase() || '')
+  // Fetch products for this category from the API (falls back to static data)
+  const { products: categoryProducts, loading: catLoading } = useProducts(
+    slug ? { category: categoryLabel } : undefined
   );
 
   const availableBrands = Array.from(
@@ -428,7 +428,7 @@ export const CategoryPage: React.FC = () => {
           </div>
 
           {/* Listing Grid/List with transitions */}
-          {isFilterLoading ? (
+          {isFilterLoading || (catLoading && categoryProducts.length === 0) ? (
             /* Shimmering Skeleton Loader Section */
             <div className={`grid gap-6 ${
               viewMode === 'grid' ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' : 'flex flex-col'
