@@ -8,12 +8,18 @@ const BASE = '/api';
 
 // ── Generic fetch wrapper ──────────────────────────────────────────────────
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
-    ...init,
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${BASE}${path}`, {
+      headers: { 'Content-Type': 'application/json' },
+      ...init,
+    });
+  } catch (e) {
+    // Network error — server not reachable
+    throw new Error('Failed to fetch');
+  }
 
-  const data = await res.json();
+  const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     throw new Error(data?.error ?? `Request failed: ${res.status}`);
   }

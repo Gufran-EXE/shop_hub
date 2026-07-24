@@ -411,7 +411,7 @@ const ProductDetailPage: React.FC = () => {
         setSelectedSize(p.sizes?.[0] ?? '');
       })
       .catch(() => {
-        // Server unreachable — use static data
+        // API unavailable (no server, 404, deployed frontend-only) — use static data
         const staticProduct = products.find((p) => p.id === id) ?? null;
         setProduct(staticProduct);
         setSelectedColor(staticProduct?.colors?.[0] ?? '');

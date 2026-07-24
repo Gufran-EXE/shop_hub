@@ -40,25 +40,25 @@ export function useProducts(query?: ProductsQuery): State {
       })
       .catch(async (err: Error) => {
         if (ctrl.signal.aborted) return;
-        // Server not running — gracefully fall back to static data
-        if (err.message.includes('Failed to fetch') || err.message.includes('NetworkError')) {
-          const { products: staticProducts } = await import('../data/products');
-          let fallback = staticProducts;
-          if (query?.category && query.category !== 'All') {
-            fallback = fallback.filter((p) => p.category === query.category);
-          }
-          if (query?.search) {
-            const q = query.search.toLowerCase();
-            fallback = fallback.filter(
-              (p) => p.name.toLowerCase().includes(q) || p.description.toLowerCase().includes(q)
-            );
-          }
-          if (query?.deals) {
-            fallback = fallback.filter((p) => p.isDeal);
-          }
-          setState({ products: fallback, total: fallback.length, loading: false, error: null });
-        } else {
-          setState((s) => ({ ...s, loading: false, error: err.message }));
+        // Fall back to static data whenever the API is unavailable
+        // (server not running, 404, network error, deployed without backend, etc.)
+        const { products: staticProducts } = await import('../data/products');
+        let fallback = staticProducts;
+        if (query?.category && query.category !== 'All') {
+          fallback = fallback.filter((p) => p.category === query.category);
+        }
+        if (query?.search) {
+          const q = query.search.toLowerCase();
+          fallback = fallback.filter(
+            (p) => p.name.toLowerCase().includes(q) || p.description.toLowerCase().includes(q)
+          );
+        }
+        if (query?.deals) {
+          fallback = fallback.filter((p) => p.isDeal);
+        }
+        setState({ products: fallback, total: fallback.length, loading: false, error: null });
+        if (!err.message.includes('Failed to fetch') && !err.message.includes('404')) {
+          console.warn('Products API error (using static fallback):', err.message);
         }
       });
 
