@@ -155,6 +155,7 @@ const SubmitButton: React.FC<{ state: BtnState; label: string }> = ({ state, lab
 /* ── Main Modal ───────────────────────────────────────── */
 export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTab = 'login' }) => {
   const { loginUser, addToast } = useApp();
+  const API = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api` : '/api';
   const [tab, setTab] = useState<'login' | 'register'>(initialTab);
   const tabRef = useRef<Record<string, HTMLButtonElement | null>>({});
   const [pill, setPill] = useState({ left: 0, width: 0 });
@@ -216,7 +217,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTa
 
     setLState('loading');
     try {
-      const res = await fetch('/api/auth/login', {
+      const res = await fetch(`${API}/auth/login`, {
         method: 'POST', credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: lEmail, password: lPass }),
@@ -238,7 +239,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTa
       }, 600);
     } catch {
       setLState('idle');
-      setLErrors({ email: 'Network error. Is the server running?' });
+      setLErrors({ email: 'Backend server is not running. Run npm run dev:server locally.' });
     }
   };
 
@@ -252,7 +253,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTa
 
     setRState('loading');
     try {
-      const res = await fetch('/api/auth/register', {
+      const res = await fetch(`${API}/auth/register`, {
         method: 'POST', credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: rName, email: rEmail, password: rPass }),
@@ -274,7 +275,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTa
       }, 600);
     } catch {
       setRState('idle');
-      setRErrors({ name: 'Network error. Is the server running?' });
+      setRErrors({ name: 'Backend server is not running. Run npm run dev:server locally.' });
     }
   };
 
