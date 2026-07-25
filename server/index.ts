@@ -2,6 +2,7 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import rateLimit from 'express-rate-limit';
 import { connectDB } from './db';
 import productRoutes from './routes/products';
 import orderRoutes from './routes/orders';
@@ -11,14 +12,54 @@ import cartRoutes from './routes/cart';
 const app  = express();
 const PORT = process.env.PORT ?? 3001;
 
-// ── Middleware ──────────────────────────────────────────
+// ── CORS ────────────────────────────────────────────────
+const ALLOWED_ORIGINS = [
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
+  // Add your Vercel URL here — reads from env so no rebuild needed
+  process.env.FRONTEND_URL,
+].filter(Boolean) as string[];
+
 app.use(cors({
-  origin: true, // allow all origins in dev and production
+  origin: (origin, cb) => {
+    // Allow requests with no origin (curl, Postman, mobile apps)
+    if (!origin) return cb(null, true);
+    if (ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
+    cb(new Error(`CORS: origin ${origin} not allowed`));
+  },
   credentials: true,
 }));
+
+// ── Raw body preservation for Razorpay webhook signature verification ──
+// Must come BEFORE express.json()
+app.use('/api/payments/webhook', express.raw({ type: 'application/json' }));
+
+// ── Body parsers ────────────────────────────────────────
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+// ── Rate limiting ───────────────────────────────────────
+// Auth routes — strict: 10 requests per 15 min per IP
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { error: 'Too many attempts. Please try again in 15 minutes.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// General API — 100 requests per minute per IP
+const apiLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 100,
+  message: { error: 'Too many requests. Please slow down.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use('/api/auth', authLimiter);
+app.use('/api', apiLimiter);
 
 // ── Routes ──────────────────────────────────────────────
 app.use('/api/products', productRoutes);

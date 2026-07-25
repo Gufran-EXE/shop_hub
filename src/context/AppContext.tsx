@@ -46,6 +46,11 @@ interface AppContextProps {
 const AppContext = createContext<AppContextProps | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // ── API base URL — defined first so all functions below can use it ──────
+  const API_BASE = import.meta.env.VITE_API_URL
+    ? `${import.meta.env.VITE_API_URL}/api`
+    : '/api';
+
   const [cart, setCart] = useState<CartItem[]>([]);
   const [wishlist, setWishlist] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -126,10 +131,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // Server unreachable — keep current local state
     }
   };
-
-  const API_BASE = import.meta.env.VITE_API_URL
-    ? `${import.meta.env.VITE_API_URL}/api`
-    : '/api';
 
   // Hydrate auth state from the server cookie on mount
   useEffect(() => {

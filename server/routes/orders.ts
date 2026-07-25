@@ -1,20 +1,42 @@
 import { Router, Request, Response } from 'express';
+import jwt from 'jsonwebtoken';
 import { Order } from '../models/Order';
 
 const router = Router();
+const JWT_SECRET = process.env.JWT_SECRET ?? 'gufu_dev_secret_change_in_prod';
+const COOKIE = 'gufu_token';
+
+function extractToken(req: Request): string | null {
+  const cookie = req.cookies?.[COOKIE];
+  if (cookie) return cookie;
+  const header = req.headers.authorization;
+  if (header?.startsWith('Bearer ')) return header.slice(7);
+  return null;
+}
+
+function getUserId(req: Request): string | null {
+  try {
+    const token = extractToken(req);
+    if (!token) return null;
+    const payload = jwt.verify(token, JWT_SECRET) as { id: string };
+    return payload.id;
+  } catch { return null; }
+}
 
 // POST /api/orders — create a new order
 router.post('/', async (req: Request, res: Response) => {
   try {
     const { items, shippingAddress, subtotal, shipping, discount, total, paymentMethod } = req.body;
 
-    // Basic validation
     if (!items?.length || !shippingAddress || total == null) {
       res.status(400).json({ error: 'Missing required order fields' });
       return;
     }
 
+    const userId = getUserId(req); // optional — attach if logged in
+
     const order = await Order.create({
+      ...(userId ? { userId } : {}),
       items,
       shippingAddress,
       subtotal,
