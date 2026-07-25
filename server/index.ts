@@ -8,6 +8,7 @@ import productRoutes from './routes/products';
 import orderRoutes from './routes/orders';
 import authRoutes from './routes/auth';
 import cartRoutes from './routes/cart';
+import paymentRoutes from './routes/payments';
 
 const app  = express();
 const PORT = process.env.PORT ?? 3001;
@@ -55,10 +56,11 @@ app.use('/api/auth/register', authLimiter);
 app.use('/api', apiLimiter);
 
 // ── Routes ──────────────────────────────────────────────
-app.use('/api/products', productRoutes);
-app.use('/api/orders',   orderRoutes);
-app.use('/api/auth',     authRoutes);
-app.use('/api/cart',     cartRoutes);
+app.use('/api/products',  productRoutes);
+app.use('/api/orders',    orderRoutes);
+app.use('/api/auth',      authRoutes);
+app.use('/api/cart',      cartRoutes);
+app.use('/api/payments',  paymentRoutes);
 
 // Health check
 app.get('/api/health', (_req, res) => {
