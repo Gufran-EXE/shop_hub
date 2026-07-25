@@ -16,15 +16,18 @@ const PORT = process.env.PORT ?? 3001;
 const ALLOWED_ORIGINS = [
   'http://localhost:5173',
   'http://127.0.0.1:5173',
-  // Add your Vercel URL here — reads from env so no rebuild needed
   process.env.FRONTEND_URL,
-].filter(Boolean) as string[];
+].filter((o): o is string => typeof o === 'string' && o.length > 0);
 
 app.use(cors({
   origin: (origin, cb) => {
-    // Allow requests with no origin (curl, Postman, mobile apps)
+    // Allow requests with no origin (curl, Postman, server-to-server)
     if (!origin) return cb(null, true);
+    // Allow if in whitelist
     if (ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
+    // In development allow all
+    if (process.env.NODE_ENV !== 'production') return cb(null, true);
+    // Block unknown origins in production
     cb(new Error(`CORS: origin ${origin} not allowed`));
   },
   credentials: true,
