@@ -8,6 +8,7 @@
     "dev:server": "tsx watch server/index.ts",
     "dev:all": "npm run dev:server & npm run dev",
     "seed": "tsx server/seed.ts",
+    "start": "tsx server/index.ts",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview"
