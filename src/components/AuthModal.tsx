@@ -232,6 +232,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTa
       }
       setLState('success');
       const user: AuthUser = { id: data.id, name: data.name, email: data.email };
+      if (data.token) localStorage.setItem('gufu_token', data.token);
       setTimeout(async () => {
         await loginUser(user);
         addToast(`Welcome back, ${user.name}!`, 'success');
@@ -268,6 +269,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTa
       }
       setRState('success');
       const user: AuthUser = { id: data.id, name: data.name, email: data.email };
+      if (data.token) localStorage.setItem('gufu_token', data.token);
       setTimeout(async () => {
         await loginUser(user);
         addToast(`Welcome, ${user.name}! Account created.`, 'success');

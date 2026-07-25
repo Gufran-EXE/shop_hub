@@ -121,7 +121,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Hydrate auth state from the server cookie on mount
   useEffect(() => {
-    fetch(`${API_BASE}/auth/me`, { credentials: 'include' })
+    const stored = localStorage.getItem('gufu_token');
+    const headers: Record<string, string> = stored
+      ? { Authorization: `Bearer ${stored}` }
+      : {};
+    fetch(`${API_BASE}/auth/me`, { credentials: 'include', headers })
       .then((r) => r.ok ? r.json() : null)
       .then(async (user) => {
         if (user) {
@@ -143,9 +147,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [cart, currentUser]);
 
   const logout = async () => {
-    await fetch(`${API_BASE}/auth/logout`, { method: 'POST', credentials: 'include' }).catch(() => {});
+    const stored = localStorage.getItem('gufu_token');
+    await fetch(`${API_BASE}/auth/logout`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: stored ? { Authorization: `Bearer ${stored}` } : {},
+    }).catch(() => {});
+    localStorage.removeItem('gufu_token');
     setCurrentUser(null);
-    setCart([]); // clear local cart on logout
+    setCart([]);
   };
 
   // Expose setCurrentUser so AuthModal can call loadCartFromServer after login

@@ -8,10 +8,21 @@ const JWT_SECRET = process.env.JWT_SECRET ?? 'gufu_dev_secret_change_in_prod';
 const COOKIE = 'gufu_token';
 const COOKIE_OPTS = {
   httpOnly: true,
-  sameSite: 'lax' as const,
-  secure: process.env.NODE_ENV === 'production',
-  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  sameSite: 'none' as const, // required for cross-domain
+  secure: true,              // required with sameSite:none
+  maxAge: 7 * 24 * 60 * 60 * 1000,
 };
+
+/** Extract token from cookie OR Authorization header */
+function extractToken(req: Request): string | null {
+  // Cookie first
+  const cookie = req.cookies?.[COOKIE];
+  if (cookie) return cookie;
+  // Bearer token fallback (localStorage-based auth)
+  const header = req.headers.authorization;
+  if (header?.startsWith('Bearer ')) return header.slice(7);
+  return null;
+}
 
 // ── POST /api/auth/register ────────────────────────────────────────────────
 router.post('/register', async (req: Request, res: Response) => {
@@ -33,8 +44,8 @@ router.post('/register', async (req: Request, res: Response) => {
 
     const token = jwt.sign({ id: user._id.toString() }, JWT_SECRET, { expiresIn: '7d' });
     res.cookie(COOKIE, token, COOKIE_OPTS);
-
-    res.status(201).json({ id: user._id, name: user.name, email: user.email });
+    // Also return token in body so frontend can store in localStorage (cross-domain)
+    res.status(201).json({ id: user._id, name: user.name, email: user.email, token });
   } catch (err) {
     console.error('register error:', err);
     res.status(500).json({ error: 'Something went wrong. Please try again.' });
@@ -59,8 +70,8 @@ router.post('/login', async (req: Request, res: Response) => {
 
     const token = jwt.sign({ id: user._id.toString() }, JWT_SECRET, { expiresIn: '7d' });
     res.cookie(COOKIE, token, COOKIE_OPTS);
-
-    res.json({ id: user._id, name: user.name, email: user.email });
+    // Also return token in body
+    res.json({ id: user._id, name: user.name, email: user.email, token });
   } catch (err) {
     console.error('login error:', err);
     res.status(500).json({ error: 'Something went wrong. Please try again.' });
@@ -69,14 +80,14 @@ router.post('/login', async (req: Request, res: Response) => {
 
 // ── POST /api/auth/logout ──────────────────────────────────────────────────
 router.post('/logout', (_req: Request, res: Response) => {
-  res.clearCookie(COOKIE);
+  res.clearCookie(COOKIE, { sameSite: 'none', secure: true });
   res.json({ ok: true });
 });
 
 // ── GET /api/auth/me ───────────────────────────────────────────────────────
 router.get('/me', async (req: Request, res: Response) => {
   try {
-    const token = req.cookies?.[COOKIE];
+    const token = extractToken(req);
     if (!token) return void res.status(401).json({ error: 'Not authenticated.' });
 
     const payload = jwt.verify(token, JWT_SECRET) as { id: string };
