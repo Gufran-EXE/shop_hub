@@ -13,23 +13,8 @@ const app  = express();
 const PORT = process.env.PORT ?? 3001;
 
 // ── CORS ────────────────────────────────────────────────
-const ALLOWED_ORIGINS = [
-  'http://localhost:5173',
-  'http://127.0.0.1:5173',
-  process.env.FRONTEND_URL,
-].filter((o): o is string => typeof o === 'string' && o.length > 0);
-
 app.use(cors({
-  origin: (origin, cb) => {
-    // Allow requests with no origin (curl, Postman, server-to-server)
-    if (!origin) return cb(null, true);
-    // Allow if in whitelist
-    if (ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
-    // In development allow all
-    if (process.env.NODE_ENV !== 'production') return cb(null, true);
-    // Block unknown origins in production
-    cb(new Error(`CORS: origin ${origin} not allowed`));
-  },
+  origin: true,
   credentials: true,
 }));
 
