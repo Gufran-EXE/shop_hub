@@ -123,7 +123,7 @@ export const CartPage: React.FC = () => {
                       </h3>
                       {item.product.discount > 0 && (
                         <p className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold mt-1">
-                          {item.product.discount}% off · save ${((item.product.originalPrice - item.product.price) * item.quantity).toFixed(2)}
+                          {item.product.discount}% off · save ₹{((item.product.originalPrice - item.product.price) * item.quantity).toFixed(2)}
                         </p>
                       )}
                     </div>
@@ -155,7 +155,7 @@ export const CartPage: React.FC = () => {
                       <div className="flex items-center gap-4">
                         {/* Line price */}
                         <span className="font-extrabold text-base text-slate-900 dark:text-white">
-                          ${(item.product.price * item.quantity).toFixed(2)}
+                          ₹{(item.product.price * item.quantity).toFixed(2)}
                         </span>
                         {/* Remove */}
                         <motion.button
@@ -215,7 +215,7 @@ export const CartPage: React.FC = () => {
           <div className="space-y-3 text-sm border-t border-slate-100 dark:border-slate-800 pt-4">
             <div className="flex justify-between text-slate-500 dark:text-slate-400">
               <span>Subtotal</span>
-              <AnimatedNumber value={subtotal} prefix="$" className="font-semibold text-slate-900 dark:text-white" />
+              <AnimatedNumber value={subtotal} prefix="₹" className="font-semibold text-slate-900 dark:text-white" />
             </div>
             {couponApplied && (
               <div className="flex justify-between text-emerald-600 dark:text-emerald-400">
@@ -227,12 +227,12 @@ export const CartPage: React.FC = () => {
               <span>Shipping</span>
               {shipping === 0
                 ? <span className="font-semibold text-emerald-600 dark:text-emerald-400">FREE</span>
-                : <AnimatedNumber value={shipping} prefix="$" className="font-semibold text-slate-900 dark:text-white" />
+                : <AnimatedNumber value={shipping} prefix="₹" className="font-semibold text-slate-900 dark:text-white" />
               }
             </div>
             <div className="border-t border-slate-100 dark:border-slate-800 pt-3 flex justify-between font-extrabold text-base text-slate-900 dark:text-white">
               <span>Total</span>
-              <AnimatedNumber value={total} prefix="$" className="text-primary text-lg" />
+              <AnimatedNumber value={total} prefix="₹" className="text-primary text-lg" />
             </div>
           </div>
 

@@ -47,7 +47,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenCart: _onOpenCart }) => {
             <Sparkles className="w-5 h-5 text-white" />
           </div>
           <span className="text-xl font-extrabold tracking-tight bg-gradient-to-r from-slate-900 via-primary to-accent bg-clip-text text-transparent dark:from-white dark:via-indigo-400 dark:to-orange-400">
-            GUFU
+            ShopHub
           </span>
         </Link>
 

@@ -62,10 +62,10 @@ export const Footer: React.FC = () => {
           {/* Brand Col */}
           <div className="lg:col-span-4 space-y-6">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center shadow-md">
-                <span className="text-white font-black text-sm">A</span>
+              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shadow-md">
+                <span className="text-white font-black text-sm">S</span>
               </div>
-              <span className="text-lg font-black tracking-wider text-white">AURA</span>
+              <span className="text-lg font-black tracking-wider text-white">ShopHub</span>
             </div>
             <p className="text-sm text-slate-500 leading-relaxed max-w-sm">
               Elevating your daily experience with carefully curated tech gadgets, premium lifestyle accessories, and wellness goods.
@@ -169,7 +169,7 @@ export const Footer: React.FC = () => {
 
         {/* Bottom copyright and payments */}
         <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-600 font-medium">
-          <p>© {new Date().getFullYear()} Aura E-Commerce. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} ShopHub. All rights reserved.</p>
           
           {/* Payment Badges */}
           <div className="flex items-center gap-3 select-none">

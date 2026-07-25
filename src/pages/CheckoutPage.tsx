@@ -425,7 +425,7 @@ export const CheckoutPage: React.FC = () => {
                           <p className="text-xs text-slate-400">Qty: {item.quantity}</p>
                         </div>
                         <span className="text-sm font-bold text-slate-900 dark:text-white">
-                          ${(item.product.price * item.quantity).toFixed(2)}
+                          ₹{(item.product.price * item.quantity).toFixed(2)}
                         </span>
                       </div>
                     ))}
@@ -472,7 +472,7 @@ export const CheckoutPage: React.FC = () => {
                   {item.product.name} ×{item.quantity}
                 </span>
                 <span className="font-semibold text-slate-900 dark:text-white flex-shrink-0">
-                  ${(item.product.price * item.quantity).toFixed(2)}
+                  ₹{(item.product.price * item.quantity).toFixed(2)}
                 </span>
               </div>
             ))}
@@ -480,18 +480,18 @@ export const CheckoutPage: React.FC = () => {
           <div className="border-t border-slate-100 dark:border-slate-800 pt-4 space-y-2 text-sm">
             <div className="flex justify-between text-slate-500 dark:text-slate-400">
               <span>Subtotal</span>
-              <AnimatedNumber value={subtotal} prefix="$" className="font-semibold text-slate-900 dark:text-white" />
+              <AnimatedNumber value={subtotal} prefix="₹" className="font-semibold text-slate-900 dark:text-white" />
             </div>
             <div className="flex justify-between text-slate-500 dark:text-slate-400">
               <span>Shipping</span>
               {shipping === 0
                 ? <span className="font-semibold text-emerald-500">FREE</span>
-                : <AnimatedNumber value={shipping} prefix="$" className="font-semibold text-slate-900 dark:text-white" />
+                : <AnimatedNumber value={shipping} prefix="₹" className="font-semibold text-slate-900 dark:text-white" />
               }
             </div>
             <div className="flex justify-between font-extrabold text-base text-slate-900 dark:text-white pt-2 border-t border-slate-100 dark:border-slate-800">
               <span>Total</span>
-              <AnimatedNumber value={total} prefix="$" className="text-primary" />
+              <AnimatedNumber value={total} prefix="₹" className="text-primary" />
             </div>
           </div>
         </div>

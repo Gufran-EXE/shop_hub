@@ -131,7 +131,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                         {/* Price & Delete */}
                         <div className="flex items-center gap-3">
                           <span className="font-bold text-sm text-slate-950 dark:text-slate-50">
-                            ${(item.product.price * item.quantity).toFixed(2)}
+                            ₹{(item.product.price * item.quantity).toFixed(2)}
                           </span>
                           <button
                             onClick={() => removeFromCart(item.product.id)}
@@ -153,7 +153,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                 <div className="space-y-3 mb-6">
                   <div className="flex justify-between text-sm text-slate-500 dark:text-slate-400">
                     <span>Subtotal</span>
-                    <span className="font-medium text-slate-900 dark:text-slate-100">${subtotal.toFixed(2)}</span>
+                    <span className="font-medium text-slate-900 dark:text-slate-100">₹{subtotal.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-sm text-slate-500 dark:text-slate-400">
                     <span>Shipping</span>
@@ -161,7 +161,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                   </div>
                   <div className="border-t border-slate-200/50 dark:border-slate-800/50 pt-3 flex justify-between">
                     <span className="font-semibold text-slate-900 dark:text-white">Total</span>
-                    <span className="font-extrabold text-lg text-slate-950 dark:text-white">${subtotal.toFixed(2)}</span>
+                    <span className="font-extrabold text-lg text-slate-950 dark:text-white">₹{subtotal.toFixed(2)}</span>
                   </div>
                 </div>
 

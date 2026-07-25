@@ -119,10 +119,10 @@ export const QuickViewModal: React.FC = () => {
               {/* Price */}
               <div className="flex items-baseline gap-3">
                 <span className="text-3xl font-extrabold text-slate-950 dark:text-white">
-                  ${product.price}
+                  ₹{product.price}
                 </span>
                 <span className="text-lg text-slate-400 dark:text-slate-500 line-through">
-                  ${product.originalPrice}
+                  ₹{product.originalPrice}
                 </span>
                 <span className="text-sm font-bold text-accent">
                   ({product.discount}% OFF)
