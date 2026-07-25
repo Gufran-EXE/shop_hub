@@ -28,13 +28,14 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // ── Rate limiting ───────────────────────────────────────
-// Auth routes — strict: 10 requests per 15 min per IP (login/register only)
+// Auth routes — strict: 20 requests per 15 min per IP (login/register only)
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10,
-  message: { error: 'Too many attempts. Please try again in 15 minutes.' },
+  max: 20,
+  message: { error: 'Too many login attempts. Please try again in 15 minutes.' },
   standardHeaders: true,
   legacyHeaders: false,
+  skip: () => process.env.NODE_ENV !== 'production', // disabled in dev/testing
 });
 
 // General API — 200 requests per minute per IP
