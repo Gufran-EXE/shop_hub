@@ -28,7 +28,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // ── Rate limiting ───────────────────────────────────────
-// Auth routes — strict: 10 requests per 15 min per IP
+// Auth routes — strict: 10 requests per 15 min per IP (login/register only)
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 10,
@@ -37,16 +37,17 @@ const authLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// General API — 100 requests per minute per IP
+// General API — 200 requests per minute per IP
 const apiLimiter = rateLimit({
   windowMs: 60 * 1000,
-  max: 100,
+  max: 200,
   message: { error: 'Too many requests. Please slow down.' },
   standardHeaders: true,
   legacyHeaders: false,
 });
 
-app.use('/api/auth', authLimiter);
+app.use('/api/auth/login',    authLimiter);
+app.use('/api/auth/register', authLimiter);
 app.use('/api', apiLimiter);
 
 // ── Routes ──────────────────────────────────────────────
