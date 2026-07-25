@@ -115,8 +115,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  const API_BASE = (import.meta as { env: Record<string, string> }).env?.VITE_API_URL
-    ? `${(import.meta as { env: Record<string, string> }).env.VITE_API_URL}/api`
+  const API_BASE = import.meta.env.VITE_API_URL
+    ? `${import.meta.env.VITE_API_URL}/api`
     : '/api';
 
   // Hydrate auth state from the server cookie on mount
