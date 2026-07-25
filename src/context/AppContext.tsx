@@ -67,12 +67,21 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       quantity:      i.quantity,
     }));
 
+  // Auth token helper — Bearer token for cross-domain (Vercel → Render)
+  const getAuthHeaders = (): Record<string, string> => {
+    const token = localStorage.getItem('gufu_token');
+    return {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    };
+  };
+
   // Push cart to API — debounced via useEffect below
   const syncCartToServer = (items: CartItem[]) => {
     fetch(`${API_BASE}/cart`, {
       method: 'PUT',
       credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({ items: serializeCart(items) }),
     }).catch(() => {});
   };
@@ -80,7 +89,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Load cart from server — called after login / hydration
   const loadCartFromServer = async () => {
     try {
-      const res = await fetch(`${API_BASE}/cart`, { credentials: 'include' });
+      const res = await fetch(`${API_BASE}/cart`, {
+        credentials: 'include',
+        headers: getAuthHeaders(),
+      });
       if (!res.ok) return;
       const data = await res.json();
       if (!data.items?.length) return;

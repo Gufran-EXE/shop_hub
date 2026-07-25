@@ -6,10 +6,15 @@ const router = Router();
 const JWT_SECRET = process.env.JWT_SECRET ?? 'gufu_dev_secret_change_in_prod';
 const COOKIE = 'gufu_token';
 
-/** Pull userId from cookie — returns null if not authed */
+/** Pull userId from cookie OR Authorization Bearer header */
 function getUserId(req: Request): string | null {
   try {
-    const token = req.cookies?.[COOKIE];
+    // Try cookie first
+    const cookieToken = req.cookies?.[COOKIE];
+    // Fall back to Authorization header (localStorage-based auth for cross-domain)
+    const header = req.headers.authorization;
+    const bearerToken = header?.startsWith('Bearer ') ? header.slice(7) : null;
+    const token = cookieToken ?? bearerToken;
     if (!token) return null;
     const payload = jwt.verify(token, JWT_SECRET) as { id: string };
     return payload.id;
