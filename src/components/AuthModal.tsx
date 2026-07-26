@@ -213,6 +213,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTa
     e.preventDefault();
     setLErrors({});
     if (!lEmail) { setLErrors({ email: 'Email is required.' }); shakeField(setLShake, 'email'); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(lEmail)) { setLErrors({ email: 'Enter a valid email address.' }); shakeField(setLShake, 'email'); return; }
     if (!lPass)  { setLErrors({ pass: 'Password is required.' }); shakeField(setLShake, 'pass'); return; }
 
     setLState('loading');
@@ -249,6 +250,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, initialTa
     setRErrors({});
     if (!rName)  { setRErrors({ name: 'Name is required.' }); shakeField(setRShake, 'name'); return; }
     if (!rEmail) { setRErrors({ email: 'Email is required.' }); shakeField(setRShake, 'email'); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rEmail)) { setRErrors({ email: 'Enter a valid email address.' }); shakeField(setRShake, 'email'); return; }
     if (rPass.length < 6) { setRErrors({ pass: 'Minimum 6 characters.' }); shakeField(setRShake, 'pass'); return; }
     if (rPass !== rConf) { setRErrors({ conf: 'Passwords do not match.' }); shakeField(setRShake, 'conf'); return; }
 
